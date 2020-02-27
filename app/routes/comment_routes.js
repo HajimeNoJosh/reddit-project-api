@@ -5,6 +5,7 @@ const passport = require('passport')
 
 // pull in Mongoose model for comments
 const Comment = require('../models/comment')
+const Post = require('../models/post')
 
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
@@ -72,8 +73,13 @@ router.post('/comments', requireToken, (req, res, next) => {
           res.status(201).json({comment: comment.toObject()})
         })
     })
+    .then(() => Post.find({_id: req.body.comment.post_id})
+      .then(post => post[0].updateOne({ amount: post[0].amount + 1 })))
     .catch(next)
 })
+// A post on a comment should patch(update) by 1 post amount.
+
+//
 
 router.patch('/comments/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
@@ -102,6 +108,8 @@ router.delete('/comments/:id', requireToken, (req, res, next) => {
   Comment.findById(req.params.id)
     .then(handle404)
     .then(comment => {
+      Post.find({_id: comment.post_id})
+        .then(post => post[0].updateOne({ amount: post[0].amount - 1 }))
       // throw an error if current user doesn't own `comment`
       requireOwnership(req, comment)
       // delete the comment ONLY IF the above didn't throw

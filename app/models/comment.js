@@ -5,6 +5,10 @@ const commentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  email: {
+    type: String,
+    required: true
+  },
   upvote: {
     type: Number
   },

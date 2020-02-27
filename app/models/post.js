@@ -5,9 +5,16 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  email: {
+    type: String,
+    required: true
+  },
   text: {
     type: String,
     required: true
+  },
+  amount: {
+    type: Number
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
