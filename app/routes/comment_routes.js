@@ -102,6 +102,46 @@ router.patch('/comments/:id', requireToken, removeBlanks, (req, res, next) => {
     .catch(next)
 })
 
+// UPDATE
+// PATCH /comments/5a7db6c74d55bc51bdf39793
+router.patch('/comments/vote/:id', requireToken, removeBlanks, (req, res, next) => {
+  // if the client attempts to change the `owner` property by including a new
+  // owner, prevent that by deleting that key/value pair
+  delete req.body.comment.owner
+  let voteType
+  Comment.findById(req.params.id)
+    .then(handle404)
+    .then(comment => {
+      // pass the `req` object and the Mongoose record to `requireOwnership`
+      // it will throw an error if the current user isn't the owner
+      console.log(comment, 'comment')
+      console.log(req.body.comment.user)
+      if (comment.upvoteUsers.includes(req.body.comment.user) && !comment.downvoteUsers.includes(req.body.comment.user) && req.body.comment.status === 1) {
+        voteType = 'getridofupvote'
+        return comment.updateOne({ $pull: { upvoteUsers: (req.body.comment.user) } })
+      } else if (!comment.upvoteUsers.includes(req.body.comment.user) && comment.downvoteUsers.includes(req.body.comment.user) && req.body.comment.status === 2) {
+        voteType = 'getridofdownvote'
+        return comment.updateOne({ $pull: { downvoteUsers: (req.body.comment.user) } })
+      } else if (!comment.upvoteUsers.includes(req.body.comment.user) && comment.downvoteUsers.includes(req.body.comment.user) && req.body.comment.status === 1) {
+        voteType = 'getridofdownvoteandaddupvote'
+        return comment.updateOne({$push: {'upvoteUsers': req.body.comment.user}, $pull: { 'downvoteUsers': req.body.comment.user }})
+      } else if (comment.upvoteUsers.includes(req.body.comment.user) && !comment.downvoteUsers.includes(req.body.comment.user) && req.body.comment.status === 2) {
+        voteType = 'getridofupvoteandadddownvote'
+        return comment.updateOne({$pull: {'upvoteUsers': req.body.comment.user}, $push: { 'downvoteUsers': req.body.comment.user }})
+      } else if (!comment.upvoteUsers.includes(req.body.comment.user) && !comment.downvoteUsers.includes(req.body.comment.user) && req.body.comment.status === 1) {
+        voteType = 'addupvote'
+        return comment.updateOne({ $push: { upvoteUsers: (req.body.comment.user) } })
+      } else if (!comment.upvoteUsers.includes(req.body.comment.user) && !comment.downvoteUsers.includes(req.body.comment.user) && req.body.comment.status === 2) {
+        voteType = 'adddownvote'
+        return comment.updateOne({ $push: { downvoteUsers: (req.body.comment.user) } })
+      }
+    })
+    // if that succeeded, return 204 and no JSON
+    .then(() => res.json({ type: voteType }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
 // DESTROY
 // DELETE /comments/5a7db6c74d55bc51bdf39793
 router.delete('/comments/:id', requireToken, (req, res, next) => {

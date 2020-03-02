@@ -16,6 +16,15 @@ const postSchema = new mongoose.Schema({
   amount: {
     type: Number
   },
+  votes: {
+    type: Number
+  },
+  upvoteUsers: {
+    type: Array
+  },
+  downvoteUsers: {
+    type: Array
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

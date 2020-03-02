@@ -8,10 +8,6 @@ const exampleRoutes = require('./app/routes/example_routes')
 const postRoutes = require('./app/routes/post_routes')
 const commentRoutes = require('./app/routes/comment_routes')
 const userRoutes = require('./app/routes/user_routes')
-const upvoteRoutes = require('./app/routes/upvote_routes')
-const downvoteRoutes = require('./app/routes/downvote_routes')
-const upvotecommentRoutes = require('./app/routes/upvotecomment_routes')
-const downvotecommentRoutes = require('./app/routes/downvotecomment_routes')
 // require middleware
 const errorHandler = require('./lib/error_handler')
 const replaceToken = require('./lib/replace_token')
@@ -70,10 +66,6 @@ app.use(exampleRoutes)
 app.use(postRoutes)
 app.use(commentRoutes)
 app.use(userRoutes)
-app.use(upvoteRoutes)
-app.use(downvoteRoutes)
-app.use(upvotecommentRoutes)
-app.use(downvotecommentRoutes)
 // register error handling middleware
 // note that this comes after the route middlewares, because it needs to be
 // passed any error messages from them

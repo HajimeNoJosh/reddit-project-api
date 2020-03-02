@@ -95,6 +95,74 @@ router.patch('/posts/:id', requireToken, removeBlanks, (req, res, next) => {
     .catch(next)
 })
 
+// UPDATE
+// PATCH /posts/5a7db6c74d55bc51bdf39793
+router.patch('/posts/vote/:id', requireToken, removeBlanks, (req, res, next) => {
+  // if the client attempts to change the `owner` property by including a new
+  // owner, prevent that by deleting that key/value pair
+  delete req.body.post.owner
+  let voteType
+  Post.findById(req.params.id)
+    .then(handle404)
+    .then(post => {
+      // pass the `req` object and the Mongoose record to `requireOwnership`
+      // it will throw an error if the current user isn't the owner
+      console.log(post, 'post')
+      console.log(req.body.post.user)
+      if (post.upvoteUsers.includes(req.body.post.user) && !post.downvoteUsers.includes(req.body.post.user) && req.body.post.status === 1) {
+        voteType = 'getridofupvote'
+        return post.updateOne({ $pull: { upvoteUsers: (req.body.post.user) } })
+      } else if (!post.upvoteUsers.includes(req.body.post.user) && post.downvoteUsers.includes(req.body.post.user) && req.body.post.status === 2) {
+        voteType = 'getridofdownvote'
+        return post.updateOne({ $pull: { downvoteUsers: (req.body.post.user) } })
+      } else if (!post.upvoteUsers.includes(req.body.post.user) && post.downvoteUsers.includes(req.body.post.user) && req.body.post.status === 1) {
+        voteType = 'getridofdownvoteandaddupvote'
+        return post.updateOne({$push: {'upvoteUsers': req.body.post.user}, $pull: { 'downvoteUsers': req.body.post.user }})
+      } else if (post.upvoteUsers.includes(req.body.post.user) && !post.downvoteUsers.includes(req.body.post.user) && req.body.post.status === 2) {
+        voteType = 'getridofupvoteandadddownvote'
+        return post.updateOne({$pull: {'upvoteUsers': req.body.post.user}, $push: { 'downvoteUsers': req.body.post.user }})
+      } else if (!post.upvoteUsers.includes(req.body.post.user) && !post.downvoteUsers.includes(req.body.post.user) && req.body.post.status === 1) {
+        voteType = 'addupvote'
+        return post.updateOne({ $push: { upvoteUsers: (req.body.post.user) } })
+      } else if (!post.upvoteUsers.includes(req.body.post.user) && !post.downvoteUsers.includes(req.body.post.user) && req.body.post.status === 2) {
+        voteType = 'adddownvote'
+        return post.updateOne({ $push: { downvoteUsers: (req.body.post.user) } })
+      }
+    })
+    // if that succeeded, return 204 and no JSON
+    .then(() => res.json({ type: voteType }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+// UPDATE
+// PATCH /posts/5a7db6c74d55bc51bdf39793
+router.patch('/posts/downvotes/:id', requireToken, removeBlanks, (req, res, next) => {
+  // if the client attempts to change the `owner` property by including a new
+  // owner, prevent that by deleting that key/value pair
+  delete req.body.post.owner
+  Post.findById(req.params.id)
+    .then(handle404)
+    .then(post => {
+      // pass the `req` object and the Mongoose record to `requireOwnership`
+      // it will throw an error if the current user isn't the owner
+      console.log(post, 'post')
+      // if (post.upvoteUsers.includes(req.body.post.user) && !post.downvoteUsers.includes(req.body.post.user)) {
+      //   return post.updateOne({ $pull: { upvoteUsers: (req.body.post.user) } })
+      //   post.UpdateOne({ $push: { downvoteUsers: (req.body.post.user) } })
+      // }
+      // if (post.downvoteUsers.includes(req.body.post.user)) {
+      //   return post.updateOne({ $pull: { downvoteUsers: (req.body.post.user) } })
+      // } else {
+      //   return post.updateOne({ $push: { downvoteUsers: (req.body.post.user) } })
+      // }
+    })
+    // if that succeeded, return 204 and no JSON
+    .then(() => res.sendStatus(204))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
 // DESTROY
 // DELETE /posts/5a7db6c74d55bc51bdf39793
 router.delete('/posts/:id', requireToken, (req, res, next) => {
